@@ -36,12 +36,23 @@ def fetch_drivetime(poi, time_range):
 
     isochrone = ors.isochrones(locations=[[poi['longitude'], poi['latitude']]], range=[time_range])
 
-    isochrone['features'][0]['properties']['id'] = poi['id']
+    properties = isochrone['features'][0]['properties']
+    properties['id'] = poi['id']
 
     with open(f"./geojson/{poi['id']}_{date.today()}.geojson", 'w') as output_file:
         json.dump(isochrone, output_file, ensure_ascii=False, indent=4)
 
-    
+def geojson_to_gdf():
+
+    file_path = "./geojson/"
+
+    file_list = os.listdir(file_path)
+
+    file_list = [file_path + f for f in file_list]
+
+    gdf = pd.concat([ gpd.read_file(file, crs='ESPG:4326') for file in file_list]).set_index('id')
+
+    return gdf
 
 #######    
 
@@ -56,3 +67,7 @@ gdf = csv_to_gdf("./dummy/p.csv")
 # }
 
 # fetch_drivetime(poi, 900)
+
+# test = geojson_to_gdf()
+
+# print(test.head())
