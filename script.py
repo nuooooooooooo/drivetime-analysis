@@ -22,7 +22,8 @@ def csv_to_gdf(filepath):
 
     df = pd.read_csv(filepath)
 
-    df['uuid'] = df.apply(lambda x: uuid.uuid4(), axis=1)
+    if not 'uuid' in df.columns:
+        df['uuid'] = df.apply(lambda x: uuid.uuid4(), axis=1)
 
     geometry = [Point(lon, lat)
                 for lon, lat in zip(df['longitude'], df['latitude'])]
