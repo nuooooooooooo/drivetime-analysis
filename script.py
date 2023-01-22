@@ -71,18 +71,32 @@ def fetch_points_in_drivetime(drivetime, points):
 
     return gdf
 
+def create_buffer_gsr(points, range_in_meters, crs):
+
+    points = points.to_crs(crs)
+
+    buffer = points.geometry.buffer(range_in_meters)
+
+    buffer_union = buffer.geometry.unary_union
+
+    buffer = gpd.GeoSeries(buffer_union, crs=crs)
+
+    buffer = buffer.explode()
+
+    return buffer
 
 #######
 
 gdf = csv_to_gdf("./dummy/p.csv")
 
+create_buffer_gsr(gdf,300,'epsg:31370')
 
 with open('./dummy/test_geo.geojson', 'r') as f:
     gj = geojson.load(f)
 
 dt = Polygon(gj['features'][0]['geometry']['coordinates'][0])
 
-fetch_points_in_drivetime(dt, gdf)
+# fetch_points_in_drivetime(dt, gdf)
 
 
 # print(gdf.head())
