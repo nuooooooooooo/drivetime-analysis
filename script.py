@@ -73,6 +73,19 @@ def fetch_points_in_drivetime(drivetime, points):
 
 def create_buffer_gsr(points, range_in_meters, crs):
 
+    if not isinstance(points, (gpd.GeoDataFrame, pd.DataFrame)):
+        raise TypeError("points should be a valid GeoDataFrame or DataFrame")
+    if not isinstance(range_in_meters, (int, float)):
+        raise TypeError("range_in_meters should be a valid number")
+    if not isinstance(crs, str):
+        raise TypeError("crs should be a valid proj4 string")
+    if 'geometry' not in points.columns:
+        raise AttributeError("points should have a 'geometry' column")
+    if not all(points['geometry'].apply(lambda x: x.is_valid)):
+        raise ValueError("'geometry' column of the points dataframe should contain only valid geometries")
+    if range_in_meters < 0:
+        raise ValueError("range_in_meters should be a positive number")
+
     # dataframes are passed by reference thus a copy must be created to avoid modifying the original dataframe
     points = points.copy()
 
