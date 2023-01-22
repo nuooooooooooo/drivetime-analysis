@@ -73,7 +73,10 @@ def fetch_points_in_drivetime(drivetime, points):
 
 def create_buffer_gsr(points, range_in_meters, crs):
 
-    points = points.to_crs(crs)
+    # dataframes are passed by reference thus a copy must be created to avoid modifying the original dataframe
+    points = points.copy()
+
+    points.crs = crs
 
     buffer = points.geometry.buffer(range_in_meters)
 
