@@ -106,7 +106,11 @@ def create_buffer_gsr(points, range_in_meters, crs):
 
     buffer = gpd.GeoSeries(buffer_union, crs=crs)
 
-    buffer = buffer.explode()
+    # note from the docs:
+    # index_parts
+    # boolean, default True
+    # If True, the resulting index will be a multi-index (original index with an additional level indicating the multiple geometries: a new zero-based index for each single part geometry per multi-part geometry).
+    buffer = buffer.explode(index_parts=False)
 
     return buffer
 
