@@ -52,6 +52,9 @@ def geojson_to_gdf():
 
     file_path = "./geojson/"
 
+    if not os.path.exists(file_path):
+        os.mkdir('./geojson')
+
     file_list = os.listdir(file_path)
 
     file_list = [file_path + f for f in file_list]
@@ -124,6 +127,7 @@ with open('./dummy/test_geo.geojson', 'r') as f:
     gj = geojson.load(f)
 
 dt = Polygon(gj['features'][0]['geometry']['coordinates'][0])
+
 
 # fetch_points_in_drivetime(dt, gdf)
 
