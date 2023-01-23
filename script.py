@@ -66,6 +66,15 @@ def geojson_to_gdf():
 
 def fetch_points_in_drivetime(drivetime, points):
 
+    if not isinstance(points, (gpd.GeoDataFrame, pd.DataFrame)):
+        raise TypeError("points should be a valid GeoDataFrame or DataFrame")
+    if 'geometry' not in points.columns:
+        raise AttributeError("points should have a 'geometry' column")
+    if not all(points['geometry'].apply(lambda x: x.is_valid)):
+        raise ValueError("'geometry' column of the points dataframe should contain only valid geometries")
+
+    points = points.copy()
+
     gdf = points.loc[(points['geometry'].within(drivetime) | points['geometry'].touches(drivetime)), 
     ['longitude', 'latitude', 'uuid', 'geometry']]
 
