@@ -60,6 +60,9 @@ def geojson_to_gdf():
         if file.endswith('.geojson'):
             file_list.append(file)
 
+    if not file_list:
+        raise FileNotFoundError("No geojson files found in the directory")
+
     file_list = [file_path + f for f in file_list]
 
     gdf = pd.concat([gpd.read_file(file, crs='ESPG:4326')
