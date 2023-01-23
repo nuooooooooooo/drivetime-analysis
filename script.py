@@ -115,6 +115,10 @@ def create_buffer_gsr(points, range_in_meters, crs):
 
     buffer = gpd.GeoSeries(buffer_union, crs=crs)
 
+    uuid_list = [uuid.uuid4() for _ in range(len(buffer))]
+
+    buffer.index = uuid_list
+
     # note from the docs:
     # index_parts
     # boolean, default True
@@ -127,7 +131,7 @@ def create_buffer_gsr(points, range_in_meters, crs):
 
 gdf = csv_to_gdf("./dummy/p.csv")
 
-create_buffer_gsr(gdf,300,'epsg:31370')
+print(create_buffer_gsr(gdf,300,'epsg:31370'))
 
 with open('./dummy/test_geo.geojson', 'r') as f:
     gj = geojson.load(f)
