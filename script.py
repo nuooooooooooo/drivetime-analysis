@@ -127,6 +127,30 @@ def create_buffer_gsr(points, range_in_meters, crs):
 
     return buffer
 
+def get_corresponding_buffer_id(point,buffer):
+    for index,buffer_zone in buffer.items():
+        if point.within(buffer_zone):
+            return index
+
+
+def deselect_point_closest_to_buffer_centroid(points,buffer):
+
+    points['buffer_id'] = points['geometry'].apply(lambda x :
+    get_corresponding_buffer_id(x))
+
+    # create a buffer
+
+    for buffer_id, buffer_geometry in buffer.items():
+        points_in_current_buffer = points.loc[points['buffer_id'] == buffer_id]
+        if len(points_in_current_buffer) > 1:
+            dist_to_centroid = points_in_current_buffer.geometry.distance(buffer_geometry.centroid)
+
+            closest_to_centroid = dist_to_centroid.idxmin()
+
+            points.drop(closest_to_centroid,axis=0,inplace=True)
+
+def remove_overlapping_points(points, range_in_meters, crs):
+    pass
 #######
 
 gdf = csv_to_gdf("./dummy/p.csv")
