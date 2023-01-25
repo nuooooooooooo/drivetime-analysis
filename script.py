@@ -73,7 +73,7 @@ def geojson_to_gdf():
 # "epsg:31370"
 
 
-def fetch_points_in_drivetime(drivetime, points):
+def fetch_points_in_polygon(polygon, points):
 
     if not isinstance(points, (gpd.GeoDataFrame, pd.DataFrame)):
         raise TypeError("points should be a valid GeoDataFrame or DataFrame")
@@ -84,7 +84,7 @@ def fetch_points_in_drivetime(drivetime, points):
 
     points = points.copy()
 
-    gdf = points.loc[(points['geometry'].within(drivetime) | points['geometry'].touches(drivetime)), 
+    gdf = points.loc[(points['geometry'].within(polygon) | points['geometry'].touches(polygon)), 
     ['longitude', 'latitude', 'uuid', 'geometry']]
 
     return gdf
@@ -133,10 +133,12 @@ def get_corresponding_buffer_id(point,buffer):
             return index
 
 
-def deselect_point_closest_to_buffer_centroid(points,buffer):
+def delete_point_closest_to_centroid(points,buffer):
+    
+    points = points.copy()
 
     points['buffer_id'] = points['geometry'].apply(lambda x :
-    get_corresponding_buffer_id(x))
+    get_corresponding_buffer_id(x,buffer))
 
     # create a buffer
 
@@ -149,8 +151,7 @@ def deselect_point_closest_to_buffer_centroid(points,buffer):
 
             points.drop(closest_to_centroid,axis=0,inplace=True)
 
-def remove_overlapping_points(points, range_in_meters, crs):
-    pass
+
 #######
 
 gdf = csv_to_gdf("./dummy/p.csv")
@@ -180,3 +181,5 @@ dt = Polygon(gj['features'][0]['geometry']['coordinates'][0])
 # test = geojson_to_gdf()
 
 # print(test.head())
+
+# TODO: calculate average point to poi distance
