@@ -134,8 +134,6 @@ def get_corresponding_buffer_id(point,buffer):
 
 
 def delete_point_closest_to_centroid(points,buffer):
-    
-    points = points.copy()
 
     points['buffer_id'] = points['geometry'].apply(lambda x :
     get_corresponding_buffer_id(x,buffer))
@@ -150,6 +148,22 @@ def delete_point_closest_to_centroid(points,buffer):
             closest_to_centroid = dist_to_centroid.idxmin()
 
             points.drop(closest_to_centroid,axis=0,inplace=True)
+    
+    return points
+
+def reduce_point_clustering(points, crs, range_in_meters=100):
+    points = points.copy()
+
+    points_buffer = gpd.Geoseries()
+
+#  while the length of buffer is smaller than the number of points
+    while len(points_buffer) < len(points):
+        points_buffer = create_buffer_gsr(points, range_in_meters, crs)
+        points = points['geometry'].apply(lambda x : get_corresponding_buffer_id(x))
+
+        points = delete_point_closest_to_centroid(points,points_buffer)
+
+    return points
 
 
 #######
