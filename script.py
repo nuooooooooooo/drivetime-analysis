@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv('.env')
 
 
-def csv_to_gdf(filepath):
+def csv_to_gdf(filepath: str):
     df = pd.read_csv(filepath, nrows=0)
 
     if not set(['id', 'latitude', 'longitude']).issubset(df.columns):
@@ -33,7 +33,7 @@ def csv_to_gdf(filepath):
     return gdf
 
 
-def fetch_drivetime(poi, time_range):
+def fetch_drivetime(poi, time_range: int):
     # authentication OpenRouteService
     secret = os.getenv("ORS_SECRET")
     ors = openrouteservice.Client(key=secret)
@@ -89,7 +89,7 @@ def fetch_points_in_polygon(polygon, points):
 
     return gdf
 
-def create_buffer_gsr(points, range_in_meters, crs):
+def create_buffer_gsr(points, range_in_meters: int, crs: str):
 
     if not isinstance(points, (gpd.GeoDataFrame, pd.DataFrame)):
         raise TypeError("points should be a valid GeoDataFrame or DataFrame")
@@ -151,7 +151,7 @@ def delete_point_closest_to_centroid(points,buffer):
     
     return points
 
-def reduce_point_clustering(points, crs, range_in_meters=100):
+def reduce_point_clustering(points, crs: str, range_in_meters: int =100):
     points = points.copy()
 
     points_buffer = gpd.Geoseries()
@@ -195,5 +195,3 @@ dt = Polygon(gj['features'][0]['geometry']['coordinates'][0])
 # test = geojson_to_gdf()
 
 # print(test.head())
-
-# TODO: calculate average point to poi distance
