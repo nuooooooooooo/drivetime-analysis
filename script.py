@@ -156,7 +156,6 @@ def reduce_point_clustering(points, crs: str, range_in_meters: int =100):
 
     points_buffer = gpd.Geoseries()
 
-#  while the length of buffer is smaller than the number of points
     while len(points_buffer) < len(points):
         points_buffer = create_buffer_gsr(points, range_in_meters, crs)
         points = points['geometry'].apply(lambda x : get_corresponding_buffer_id(x))
@@ -165,6 +164,8 @@ def reduce_point_clustering(points, crs: str, range_in_meters: int =100):
 
     return points
 
+def get_average_distance_to_poi(points,poi) -> float:
+    pass
 
 #######
 
