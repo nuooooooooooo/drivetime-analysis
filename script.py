@@ -154,7 +154,7 @@ def delete_point_closest_to_centroid(points,buffer):
 def reduce_point_clustering(points, crs: str, range_in_meters: int =100):
     points = points.copy()
 
-    points_buffer = gpd.Geoseries()
+    points_buffer = gpd.GeoSeries()
 
     while len(points_buffer) < len(points):
         points_buffer = create_buffer_gsr(points, range_in_meters, crs)
@@ -163,6 +163,7 @@ def reduce_point_clustering(points, crs: str, range_in_meters: int =100):
         points = delete_point_closest_to_centroid(points,points_buffer)
 
     return points
+
 
 def get_average_distance_to_poi(points,poi) -> float:
     pass
