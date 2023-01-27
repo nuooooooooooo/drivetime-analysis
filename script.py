@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv('.env')
 
 
-def csv_to_gdf(filepath: str):
+def csv_to_gdf(filepath: str, crs: str = 'epsg:31370' ):
     df = pd.read_csv(filepath, nrows=0)
 
     if not set(['id', 'latitude', 'longitude']).issubset(df.columns):
@@ -28,7 +28,9 @@ def csv_to_gdf(filepath: str):
     geometry = [Point(lon, lat)
                 for lon, lat in zip(df['longitude'], df['latitude'])]
 
-    gdf = gpd.GeoDataFrame(df, geometry=geometry, crs='EPSG:4326')
+    gdf = gpd.GeoDataFrame(df, geometry=geometry,crs='EPSG:4326')
+
+    gdf = gdf.to_crs(crs)
 
     return gdf
 
@@ -65,12 +67,10 @@ def geojson_to_gdf():
 
     file_list = [file_path + f for f in file_list]
 
-    gdf = pd.concat([gpd.read_file(file, crs='ESPG:4326')
+    gdf = pd.concat([gpd.read_file(file, crs='epsg:4326')
                     for file in file_list]).set_index('id')
 
     return gdf
-
-# "epsg:31370"
 
 
 def fetch_points_in_polygon(polygon, points):
@@ -114,16 +114,15 @@ def create_buffer_gsr(points, range_in_meters: int, crs: str):
     buffer_union = buffer.geometry.unary_union
 
     buffer = gpd.GeoSeries(buffer_union, crs=crs)
-
-    uuid_list = [uuid.uuid4() for _ in range(len(buffer))]
-
-    buffer.index = uuid_list
-
     # note from the docs:
     # index_parts
     # boolean, default True
     # If True, the resulting index will be a multi-index (original index with an additional level indicating the multiple geometries: a new zero-based index for each single part geometry per multi-part geometry).
     buffer = buffer.explode(index_parts=False)
+
+    uuid_list = [uuid.uuid4() for _ in range(len(buffer))]
+
+    buffer.index = uuid_list
 
     return buffer
 
@@ -156,9 +155,9 @@ def reduce_point_clustering(points, crs: str, range_in_meters: int =100):
 
     points_buffer = gpd.GeoSeries()
 
-    while len(points_buffer) < len(points):
+    while len(points_buffer) != len(points):
         points_buffer = create_buffer_gsr(points, range_in_meters, crs)
-        points = points['geometry'].apply(lambda x : get_corresponding_buffer_id(x))
+        points['buffer_id'] = points['geometry'].apply(lambda x : get_corresponding_buffer_id(x,points_buffer))
 
         points = delete_point_closest_to_centroid(points,points_buffer)
 
