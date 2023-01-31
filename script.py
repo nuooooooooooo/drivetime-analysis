@@ -207,3 +207,10 @@ dt = Polygon(gj['features'][0]['geometry']['coordinates'][0])
 # test = geojson_to_gdf()
 
 # print(test.head())
+
+# ref: https://www.ics.uci.edu/~eppstein/gina/scot.drysdale.html#dt
+# ref: https://towardsdatascience.com/how-to-create-voronoi-regions-with-geospatial-data-in-python-adbb6c5f2134
+# ref: https://stackoverflow.com/questions/9600801/evenly-distributing-n-points-on-a-sphere
+
+# ref: https://towardsdatascience.com/the-fascinating-world-of-voronoi-diagrams-da8fc700fa1b
+# lloyd's algorithm seems pretty interesting but with an additional step of deleting smallest polygons, or creating just the amount of polygons necessary for the n subset of points
