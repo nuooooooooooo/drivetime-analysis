@@ -74,7 +74,7 @@ def geojson_to_gdf():
 
 
 def fetch_points_in_polygon(polygon, points):
-
+    # TODO add checks for polygon; is it in geojson or in dataframe format?
     if not isinstance(points, (gpd.GeoDataFrame, pd.DataFrame)):
         raise TypeError("points should be a valid GeoDataFrame or DataFrame")
     if 'geometry' not in points.columns:
@@ -88,6 +88,13 @@ def fetch_points_in_polygon(polygon, points):
     ['longitude', 'latitude', 'uuid', 'geometry']]
 
     return gdf
+
+def fetch_x_points_in_polygons():
+    # TODO limit the amount of points returned
+    # selection should be as homogenous as possible
+    # might have to change the function above instead
+    # ref: https://stackoverflow.com/questions/22228946/choose-n-most-evenly-spread-points-across-point-dataset-in-r
+    pass
 
 def create_buffer_gsr(points, range_in_meters: int, crs: str):
 
@@ -165,6 +172,10 @@ def reduce_point_clustering(points, crs: str, range_in_meters: int =100):
 
 
 def get_average_distance_to_poi(points,poi) -> float:
+    # TODO: get average distance of a point to the poi closest to them
+    # 1. link each point to the poi closest to them and store distance to poi
+    # 2. get average from this
+    # might have to separate 1 & 2 in their own functions
     pass
 
 #######
