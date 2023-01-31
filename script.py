@@ -214,3 +214,6 @@ dt = Polygon(gj['features'][0]['geometry']['coordinates'][0])
 
 # ref: https://towardsdatascience.com/the-fascinating-world-of-voronoi-diagrams-da8fc700fa1b
 # lloyd's algorithm seems pretty interesting but with an additional step of deleting smallest polygons, or creating just the amount of polygons necessary for the n subset of points
+
+# ref: https://gis.stackexchange.com/questions/321021/splitting-polygon-into-equal-area-polygons-using-qgis
+# this seems to be the most relevant one
