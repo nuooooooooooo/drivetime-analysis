@@ -8,6 +8,8 @@ import json
 import openrouteservice
 import geojson
 import os
+from vincenty import vincenty
+
 from dotenv import load_dotenv
 load_dotenv('.env')
 
@@ -93,7 +95,7 @@ def fetch_x_points_in_polygons():
     # TODO limit the amount of points returned
     # selection should be as homogenous as possible
     # might have to change the function above instead
-    # ref: https://stackoverflow.com/questions/22228946/choose-n-most-evenly-spread-points-across-point-dataset-in-r
+    
     pass
 
 def create_buffer_gsr(points, range_in_meters: int, crs: str):
@@ -176,41 +178,47 @@ def get_average_distance_to_poi(points,poi) -> float:
     # 1. link each point to the poi closest to them and store distance to poi
     # 2. get average from this
     # might have to separate 1 & 2 in their own functions
-    pass
+
+    print(points.head())
+
+    print("\n")
+
+    print(poi.head())
 
 #######
 
-gdf = csv_to_gdf("./dummy/p.csv")
+points = csv_to_gdf("./dummy/p.csv")
 
-print(create_buffer_gsr(gdf,300,'epsg:31370'))
+# print(create_buffer_gsr(gdf,300,'epsg:31370'))
 
-with open('./dummy/test_geo.geojson', 'r') as f:
-    gj = geojson.load(f)
+# with open('./dummy/test_geo.geojson', 'r') as f:
+#     gj = geojson.load(f)
 
-dt = Polygon(gj['features'][0]['geometry']['coordinates'][0])
+# dt = Polygon(gj['features'][0]['geometry']['coordinates'][0])
+
+poi = geojson_to_gdf()
 
 
 # fetch_points_in_drivetime(dt, gdf)
 
+get_average_distance_to_poi(points,poi)
 
 
 # print(gdf.head())
 
 # poi = {
-#     'longitude': 4.4158472,
-#     'latitude': 51.2452363,
-#     'id': 'Antwerp-Kinepolis'
+#     'longitude': 5.5664583,
+#     'latitude': 50.6257948,
+#     'id': 'Guillemins'
 # }
 
+
 # fetch_drivetime(poi, 900)
-
-# test = geojson_to_gdf()
-
-# print(test.head())
 
 # ref: https://www.ics.uci.edu/~eppstein/gina/scot.drysdale.html#dt
 # ref: https://towardsdatascience.com/how-to-create-voronoi-regions-with-geospatial-data-in-python-adbb6c5f2134
 # ref: https://stackoverflow.com/questions/9600801/evenly-distributing-n-points-on-a-sphere
+# ref: https://stackoverflow.com/questions/22228946/choose-n-most-evenly-spread-points-across-point-dataset-in-r
 
 # ref: https://towardsdatascience.com/the-fascinating-world-of-voronoi-diagrams-da8fc700fa1b
 # lloyd's algorithm seems pretty interesting but with an additional step of deleting smallest polygons, or creating just the amount of polygons necessary for the n subset of points
