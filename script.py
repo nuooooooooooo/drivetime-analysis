@@ -1,4 +1,5 @@
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point, Polygon, MultiPoint
+from shapely.ops import nearest_points
 import geopandas as gpd
 import pandas as pd
 import folium
@@ -37,21 +38,6 @@ def csv_to_gdf(filepath: str, crs: str = 'epsg:31370' ):
     return gdf
 
 
-def fetch_drivetime(poi, time_range: int):
-    # authentication OpenRouteService
-    secret = os.getenv("ORS_SECRET")
-    ors = openrouteservice.Client(key=secret)
-
-    isochrone = ors.isochrones(
-        locations=[[poi['longitude'], poi['latitude']]], range=[time_range])
-
-    properties = isochrone['features'][0]['properties']
-    properties['id'] = poi['id']
-
-    with open(f"./geojson/{poi['id']}_{date.today()}.geojson", 'w') as output_file:
-        json.dump(isochrone, output_file, ensure_ascii=False, indent=4)
-
-
 def geojson_to_gdf():
 
     file_path = "./geojson/"
@@ -72,7 +58,25 @@ def geojson_to_gdf():
     gdf = pd.concat([gpd.read_file(file, crs='epsg:4326')
                     for file in file_list]).set_index('id')
 
+    gdf["longitude"] = gdf.centroid.x
+    gdf["latitude"] = gdf.centroid.y
+
     return gdf
+
+
+def fetch_drivetime(poi, time_range: int):
+    # authentication OpenRouteService
+    secret = os.getenv("ORS_SECRET")
+    ors = openrouteservice.Client(key=secret)
+
+    isochrone = ors.isochrones(
+        locations=[[poi['longitude'], poi['latitude']]], range=[time_range])
+
+    properties = isochrone['features'][0]['properties']
+    properties['id'] = poi['id']
+
+    with open(f"./geojson/{poi['id']}_{date.today()}.geojson", 'w') as output_file:
+        json.dump(isochrone, output_file, ensure_ascii=False, indent=4)
 
 
 def fetch_points_in_polygon(polygon, points):
@@ -91,12 +95,13 @@ def fetch_points_in_polygon(polygon, points):
 
     return gdf
 
+
 def fetch_x_points_in_polygons():
     # TODO limit the amount of points returned
     # selection should be as homogenous as possible
     # might have to change the function above instead
-    
     pass
+
 
 def create_buffer_gsr(points, range_in_meters: int, crs: str):
 
@@ -135,11 +140,31 @@ def create_buffer_gsr(points, range_in_meters: int, crs: str):
 
     return buffer
 
+
+#####
+# dataframe column functions
+
+# based on get_nearest_values from https://autogis-site.readthedocs.io/en/2019/notebooks/L3/nearest-neighbour.html
+def get_closest_poi_id_to_point(row, other_gdf,point_column="geometry", value_column="geometry"):
+    # Create an union of the other GeoDataFrame's geometries:
+    other_points = other_gdf["geometry"].unary_union
+    
+    # Find the nearest points
+    nearest_geoms = nearest_points(row[point_column], other_points)
+    
+    # Get corresponding values from the other df
+    nearest_data = other_gdf.loc[other_gdf["geometry"] == nearest_geoms[1]]
+    
+    nearest_value = nearest_data[value_column].get_values()[0]
+    
+    return nearest_value
+
 def get_corresponding_buffer_id(point,buffer):
     for index,buffer_zone in buffer.items():
         if point.within(buffer_zone):
             return index
 
+#####
 
 def delete_point_closest_to_centroid(points,buffer):
 
@@ -158,6 +183,7 @@ def delete_point_closest_to_centroid(points,buffer):
             points.drop(closest_to_centroid,axis=0,inplace=True)
     
     return points
+
 
 def reduce_point_clustering(points, crs: str, range_in_meters: int =100):
     points = points.copy()
@@ -185,7 +211,7 @@ def get_average_distance_to_poi(points,poi) -> float:
 
     print(poi.head())
 
-#######
+##########################
 
 points = csv_to_gdf("./dummy/p.csv")
 
@@ -203,6 +229,7 @@ poi = geojson_to_gdf()
 
 get_average_distance_to_poi(points,poi)
 
+get_closest_poi_id_to_point(points.loc[0], poi)
 
 # print(gdf.head())
 
