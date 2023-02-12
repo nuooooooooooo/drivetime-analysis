@@ -38,7 +38,7 @@ def csv_to_gdf(filepath: str, crs: str = 'epsg:31370' ):
     return gdf
 
 
-def geojson_to_gdf():
+def geojson_to_gdf(crs: str = 'epsg:31370' ):
 
     file_path = "./geojson/"
 
@@ -57,6 +57,8 @@ def geojson_to_gdf():
 
     gdf = pd.concat([gpd.read_file(file, crs='epsg:4326')
                     for file in file_list]).set_index('id')
+
+    gdf = gdf.to_crs(crs)
 
     gdf["longitude"] = gdf.centroid.x
     gdf["latitude"] = gdf.centroid.y
@@ -209,7 +211,7 @@ def get_average_distance_to_poi(points,poi) -> float:
 
     print("\n")
 
-    print(poi.head())
+    # print(poi.head())
 
 ##########################
 
@@ -229,7 +231,7 @@ poi = geojson_to_gdf()
 
 get_average_distance_to_poi(points,poi)
 
-get_closest_poi_id_to_point(points.loc[0], poi)
+# get_closest_poi_id_to_point(points.loc[0], poi)
 
 # print(gdf.head())
 
