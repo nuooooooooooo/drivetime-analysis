@@ -63,6 +63,8 @@ def geojson_to_gdf(crs: str = 'epsg:31370' ):
 
     gdf = gdf.to_crs(crs)
 
+    gdf["centroid"] = gdf.centroid
+
     return gdf
 
 
@@ -149,17 +151,17 @@ def create_buffer_gsr(points, range_in_meters: int, crs: str):
 # dataframe column functions
 
 # based on get_nearest_values from https://autogis-site.readthedocs.io/en/2019/notebooks/L3/nearest-neighbour.html
-def get_closest_poi_id_to_point(row, other_gdf,point_column="geometry", value_column="geometry"):
+def get_closest_poi_id_to_point(row, other_gdf,point_column="geometry", other_gdf_point_column="geometry"):
     # Create an union of the other GeoDataFrame's geometries:
-    other_points = other_gdf["geometry"].unary_union
-    
+    other_points = other_gdf[other_gdf_point_column].unary_union
+
     # Find the nearest points
     nearest_geoms = nearest_points(row[point_column], other_points)
     
     # Get corresponding values from the other df
-    nearest_data = other_gdf.loc[other_gdf["geometry"] == nearest_geoms[1]]
-    
-    nearest_value = nearest_data[value_column].get_values()[0]
+    nearest_data = other_gdf.loc[other_gdf[other_gdf_point_column] == nearest_geoms[1]]
+
+    nearest_value = nearest_data.index.values[0]
     
     return nearest_value
 
@@ -202,18 +204,27 @@ def reduce_point_clustering(points, crs: str, range_in_meters: int =100):
 
     return points
 
+def get_dist_to_point(row, other_gdf,other_gdf_index):
+
+    point1 = (row['latitude'], row['longitude'])
+    point2 = (other_gdf.loc[row[other_gdf_index]]['latitude'], other_gdf.loc[row[other_gdf_index]]['longitude'])
+
+    return vincenty(point1, point2)
 
 def get_average_distance_to_poi(points,poi) -> float:
-    # TODO: get average distance of a point to the poi closest to them
+    # get average distance of a point to the poi closest to them
     # 1. link each point to the poi closest to them and store distance to poi
     # 2. get average from this
-    # might have to separate 1 & 2 in their own functions
 
-    print(points.head())
+    points['nearest_poi'] = points.apply(get_closest_poi_id_to_point, other_gdf=poi, other_gdf_point_column="centroid", axis=1)
 
-    print("\n")
+    points['dist_to_poi'] = points.apply(get_dist_to_point,other_gdf=poi, other_gdf_index="nearest_poi",axis=1)
 
-    print(poi.head())
+    return points['dist_to_poi'].mean()
+
+
+
+ 
 
 ##########################
 
@@ -231,11 +242,10 @@ poi = geojson_to_gdf()
 
 # fetch_points_in_drivetime(dt, gdf)
 
-get_average_distance_to_poi(points,poi)
+avg_dist = get_average_distance_to_poi(points,poi)
 
-# get_closest_poi_id_to_point(points.loc[0], poi)
+print(avg_dist)
 
-# print(gdf.head())
 
 poi = {
     'longitude':  4.481953941484154,
