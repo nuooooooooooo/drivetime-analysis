@@ -15,6 +15,10 @@ from dotenv import load_dotenv
 load_dotenv('.env')
 
 
+####
+#### functions to read/write data to/from files
+####
+
 def csv_to_gdf(filepath: str, crs: str = 'epsg:31370' ):
     df = pd.read_csv(filepath, nrows=0)
 
@@ -85,6 +89,10 @@ def fetch_drivetime(poi, time_range: int):
         json.dump(isochrone, output_file, ensure_ascii=False, indent=4)
 
 
+####
+#### functions to filter point list
+####
+
 def fetch_points_in_polygon(polygon, points):
     # TODO add checks for polygon; is it in geojson or in dataframe format?
     if not isinstance(points, (gpd.GeoDataFrame, pd.DataFrame)):
@@ -108,6 +116,10 @@ def fetch_x_points_in_polygons():
     # might have to change the function above instead
     pass
 
+
+####
+#### functions to reduce point clustering in polygon
+####
 
 def create_buffer_gsr(points, range_in_meters: int, crs: str):
 
@@ -146,31 +158,10 @@ def create_buffer_gsr(points, range_in_meters: int, crs: str):
 
     return buffer
 
-
-#####
-# dataframe column functions
-
-# based on get_nearest_values from https://autogis-site.readthedocs.io/en/2019/notebooks/L3/nearest-neighbour.html
-def get_closest_poi_id_to_point(row, other_gdf,point_column="geometry", other_gdf_point_column="geometry"):
-    # Create an union of the other GeoDataFrame's geometries:
-    other_points = other_gdf[other_gdf_point_column].unary_union
-
-    # Find the nearest points
-    nearest_geoms = nearest_points(row[point_column], other_points)
-    
-    # Get corresponding values from the other df
-    nearest_data = other_gdf.loc[other_gdf[other_gdf_point_column] == nearest_geoms[1]]
-
-    nearest_value = nearest_data.index.values[0]
-    
-    return nearest_value
-
 def get_corresponding_buffer_id(point,buffer):
     for index,buffer_zone in buffer.items():
         if point.within(buffer_zone):
             return index
-
-#####
 
 def delete_point_closest_to_centroid(points,buffer):
 
@@ -204,6 +195,25 @@ def reduce_point_clustering(points, crs: str, range_in_meters: int =100):
 
     return points
 
+####
+#### functions to calculate distance to poi
+####
+
+# based on get_nearest_values from https://autogis-site.readthedocs.io/en/2019/notebooks/L3/nearest-neighbour.html
+def get_closest_poi_id_to_point(row, other_gdf,point_column="geometry", other_gdf_point_column="geometry"):
+    # Create an union of the other GeoDataFrame's geometries:
+    other_points = other_gdf[other_gdf_point_column].unary_union
+
+    # Find the nearest points
+    nearest_geoms = nearest_points(row[point_column], other_points)
+    
+    # Get corresponding values from the other df
+    nearest_data = other_gdf.loc[other_gdf[other_gdf_point_column] == nearest_geoms[1]]
+
+    nearest_value = nearest_data.index.values[0]
+    
+    return nearest_value
+
 
 def get_dist_to_point(lat1,lon1, lat2, lon2):
 
@@ -212,19 +222,22 @@ def get_dist_to_point(lat1,lon1, lat2, lon2):
 
     return vincenty(point1, point2)
 
-def get_average_distance_to_poi(points,poi) -> float:
+def add_nearest_poi_distance(points,poi):
     # get average distance of a point to the poi closest to them
     # 1. link each point to the poi closest to them and store distance to poi
     # 2. get average from this
+    points = points.copy()
 
     points['nearest_poi'] = points.apply(get_closest_poi_id_to_point, other_gdf=poi, other_gdf_point_column="centroid", axis=1)
 
     points['dist_to_poi'] = points.apply(lambda x : get_dist_to_point(x['latitude'], x['longitude'],poi.loc[x['nearest_poi']]['latitude'],poi.loc[x['nearest_poi']]['longitude']),axis=1)
 
-    return points['dist_to_poi'].mean()
+    return points
 
 
+def get_avg_distance(points, column_name) -> float:
 
+    return points[column_name].mean()
  
 
 ##########################
@@ -243,11 +256,11 @@ poi = geojson_to_gdf()
 
 # fetch_points_in_drivetime(dt, gdf)
 
-avg_dist = get_average_distance_to_poi(points,poi)
+points_with_dist_to_poi = add_nearest_poi_distance(points,poi)
 
-print(avg_dist)
+print(get_avg_distance(points_with_dist_to_poi,'dist_to_poi'))
 
-print(points.tail())
+print(points_with_dist_to_poi.tail())
 
 
 poi = {
