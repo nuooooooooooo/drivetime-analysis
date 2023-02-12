@@ -58,10 +58,10 @@ def geojson_to_gdf(crs: str = 'epsg:31370' ):
     gdf = pd.concat([gpd.read_file(file, crs='epsg:4326')
                     for file in file_list]).set_index('id')
 
-    gdf = gdf.to_crs(crs)
+    # gdf["longitude"] = gdf.centroid.x
+    # gdf["latitude"] = gdf.centroid.y
 
-    gdf["longitude"] = gdf.centroid.x
-    gdf["latitude"] = gdf.centroid.y
+    gdf = gdf.to_crs(crs)
 
     return gdf
 
@@ -76,6 +76,8 @@ def fetch_drivetime(poi, time_range: int):
 
     properties = isochrone['features'][0]['properties']
     properties['id'] = poi['id']
+    properties['longitude'] = poi['longitude']
+    properties['latitude'] = poi['latitude']
 
     with open(f"./geojson/{poi['id']}_{date.today()}.geojson", 'w') as output_file:
         json.dump(isochrone, output_file, ensure_ascii=False, indent=4)
@@ -211,7 +213,7 @@ def get_average_distance_to_poi(points,poi) -> float:
 
     print("\n")
 
-    # print(poi.head())
+    print(poi.head())
 
 ##########################
 
@@ -235,11 +237,11 @@ get_average_distance_to_poi(points,poi)
 
 # print(gdf.head())
 
-# poi = {
-#     'longitude': 5.5664583,
-#     'latitude': 50.6257948,
-#     'id': 'Guillemins'
-# }
+poi = {
+    'longitude':  4.481953941484154,
+    'latitude':  51.024599008502776,
+    'id': 'Mechelen'
+}
 
 
 # fetch_drivetime(poi, 900)
