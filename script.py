@@ -204,10 +204,11 @@ def reduce_point_clustering(points, crs: str, range_in_meters: int =100):
 
     return points
 
-def get_dist_to_point(row, other_gdf,other_gdf_index):
 
-    point1 = (row['latitude'], row['longitude'])
-    point2 = (other_gdf.loc[row[other_gdf_index]]['latitude'], other_gdf.loc[row[other_gdf_index]]['longitude'])
+def get_dist_to_point(lat1,lon1, lat2, lon2):
+
+    point1 = (lat1, lon1)
+    point2 = (lat2, lon2)
 
     return vincenty(point1, point2)
 
@@ -218,7 +219,7 @@ def get_average_distance_to_poi(points,poi) -> float:
 
     points['nearest_poi'] = points.apply(get_closest_poi_id_to_point, other_gdf=poi, other_gdf_point_column="centroid", axis=1)
 
-    points['dist_to_poi'] = points.apply(get_dist_to_point,other_gdf=poi, other_gdf_index="nearest_poi",axis=1)
+    points['dist_to_poi'] = points.apply(lambda x : get_dist_to_point(x['latitude'], x['longitude'],poi.loc[x['nearest_poi']]['latitude'],poi.loc[x['nearest_poi']]['longitude']),axis=1)
 
     return points['dist_to_poi'].mean()
 
@@ -245,6 +246,8 @@ poi = geojson_to_gdf()
 avg_dist = get_average_distance_to_poi(points,poi)
 
 print(avg_dist)
+
+print(points.tail())
 
 
 poi = {
