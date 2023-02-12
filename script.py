@@ -102,8 +102,6 @@ def fetch_points_in_polygon(polygon, points):
     if not all(points['geometry'].apply(lambda x: x.is_valid)):
         raise ValueError("'geometry' column of the points dataframe should contain only valid geometries")
 
-    points = points.copy()
-
     gdf = points.loc[(points['geometry'].within(polygon) | points['geometry'].touches(polygon)), 
     ['longitude', 'latitude', 'uuid', 'geometry']]
 
@@ -236,8 +234,18 @@ def add_nearest_poi_distance(points,poi):
 
 
 def get_avg_distance(points, column_name) -> float:
-
     return points[column_name].mean()
+
+
+# TODO:
+def get_percentage_of_points_within_poi_dist(distance: float) -> float:
+    # fetch_points_in_polygon is related to this
+
+    pass
+
+def get_count_of_points_in_poi():
+    # adds a column x_km_coverage with count of points in said distance
+    pass
  
 
 ##########################
